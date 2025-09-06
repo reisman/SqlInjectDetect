@@ -6,7 +6,7 @@ public static class SqlInjectDetector
 {
     // A single, comprehensive, compiled regex for performance.
     // This pattern combines multiple checks for comments, keywords, functions, and classic injection strings.
-    private static readonly Regex CombinedSqlInjectionPattern = new(
+    private static readonly Regex CombinedSqlInjectionPattern = new Regex(
         // Comments: /*...*/, --, #
         @"/\*.*?\*/|\s--\s|--$|\s#\s|#$|" +
 
@@ -35,13 +35,11 @@ public static class SqlInjectDetector
         @"javascript:|vbscript:",
         RegexOptions.Compiled | RegexOptions.IgnoreCase | RegexOptions.Singleline);
 
-    private static readonly Regex UrlEncodedPattern = new(@"%[0-9a-f]{2}",
-        RegexOptions.Compiled | RegexOptions.IgnoreCase);
+    private static readonly Regex UrlEncodedPattern = new(@"%[0-9a-f]{2}", RegexOptions.Compiled | RegexOptions.IgnoreCase);
 
-    public static bool ContainsSqlInjection(string? sql)
+    public static bool ContainsSqlInjection(string sql)
     {
-        if (string.IsNullOrWhiteSpace(sql))
-            return false;
+        if (string.IsNullOrWhiteSpace(sql)) return false;
 
         var normalizedSql = sql.Trim();
 
@@ -107,8 +105,8 @@ public static class SqlInjectDetector
         if (semicolonIndex > -1 && semicolonIndex < sql.Length - 1)
         {
             // Check if there's another command after a semicolon
-            var subsequent = sql.AsSpan(semicolonIndex + 1).TrimStart();
-            if (!subsequent.IsEmpty)
+            var subsequent = sql.Substring(semicolonIndex + 1).TrimStart();
+            if (subsequent.Length > 0)
             {
                 // A simple check for a keyword is enough to be suspicious.
                 return subsequent.StartsWith("--", StringComparison.Ordinal) ||
