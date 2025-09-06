@@ -13,8 +13,15 @@ public static class SqlInjectDetector
         // Union-based
         @"\bunion(\s+all)?\s+select\b|" +
 
-        // Dangerous keywords and system tables/views
-        @"\b(select|insert|update|delete|drop|create|alter|exec|execute|declare|bulk|shutdown|waitfor|if|while|begin|end|try|catch|case|when|then|else|having|group\s+by|order\s+by|like|escape|information_schema|sysobjects|xp_cmdshell|xp_dirtree|sp_configure|openrowset|openquery|dbcc)\b|" +
+        // Dangerous keywords followed by syntax, not just the keyword alone.
+        // This reduces false positives for valid text containing words like "select" or "insert".
+        @"\b(select\s+.+from|insert\s+into|update\s+.+set|delete\s+from|drop\s+(table|database)|create\s+(table|database)|alter\s+table|exec\s+.+|execute\s+.+|declare\s+@|bulk\s+insert|shutdown|waitfor\s+delay)\b|" +
+        
+        // Standalone keywords that are still suspicious
+        @"\b(if|while|begin|end|try|catch|case|when|then|else|having|group\s+by|order\s+by|like|escape)\b|" +
+
+        // System tables/views that are highly suspicious
+        @"\b(information_schema|sysobjects|xp_cmdshell|xp_dirtree|sp_configure|openrowset|openquery|dbcc)\b|" +
 
         // Hex encoding
         @"\b0x[0-9a-f]+\b|" +
@@ -37,7 +44,7 @@ public static class SqlInjectDetector
 
     private static readonly Regex UrlEncodedPattern = new(@"%[0-9a-f]{2}", RegexOptions.Compiled | RegexOptions.IgnoreCase);
 
-    public static bool ContainsSqlInjection(string sql)
+    public static bool ContainsSqlInjection(string? sql)
     {
         if (string.IsNullOrWhiteSpace(sql)) return false;
 
