@@ -1,3 +1,4 @@
+using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SqlInjectDetect;
 
@@ -59,7 +60,7 @@ public sealed class SqlInjectDetectorMsSqlServerTests
         // Act & Assert
         foreach (var input in msSqlInjections)
         {
-            Assert.IsTrue(SqlInjectDetector.ContainsSqlInjection(input), $"MS SQL Server specific injection '{input}' should be detected");
+            SqlInjectDetector.ContainsSqlInjection(input).Should().BeTrue($"MS SQL Server specific injection '{input}' should be detected");
         }
     }
 }

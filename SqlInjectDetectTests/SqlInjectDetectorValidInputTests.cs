@@ -1,3 +1,4 @@
+using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SqlInjectDetect;
 
@@ -25,7 +26,7 @@ public sealed class SqlInjectDetectorValidInputTests
         // Act & Assert
         foreach (var input in validInputs)
         {
-            Assert.IsFalse(SqlInjectDetector.ContainsSqlInjection(input), $"Input '{input}' should be valid");
+            SqlInjectDetector.ContainsSqlInjection(input).Should().BeFalse($"Input '{input}' should be valid");
         }
     }
 
@@ -33,9 +34,9 @@ public sealed class SqlInjectDetectorValidInputTests
     public void ContainsSqlInjection_NullAndEmpty_ReturnsFalse()
     {
         // Act & Assert
-        Assert.IsFalse(SqlInjectDetector.ContainsSqlInjection(null));
-        Assert.IsFalse(SqlInjectDetector.ContainsSqlInjection(""));
-        Assert.IsFalse(SqlInjectDetector.ContainsSqlInjection("   "));
+        SqlInjectDetector.ContainsSqlInjection(null).Should().BeFalse();
+        SqlInjectDetector.ContainsSqlInjection("").Should().BeFalse();
+        SqlInjectDetector.ContainsSqlInjection("   ").Should().BeFalse();
     }
 
     [TestMethod]
@@ -69,7 +70,7 @@ public sealed class SqlInjectDetectorValidInputTests
         // Act & Assert
         foreach (var partName in validPartNames)
         {
-            Assert.IsFalse(SqlInjectDetector.ContainsSqlInjection(partName), 
+            SqlInjectDetector.ContainsSqlInjection(partName).Should().BeFalse(
                 $"Valid part name '{partName}' should not be flagged as injection");
         }
     }
@@ -105,7 +106,7 @@ public sealed class SqlInjectDetectorValidInputTests
         // Act & Assert
         foreach (var partNumber in validPartNumbers)
         {
-            Assert.IsFalse(SqlInjectDetector.ContainsSqlInjection(partNumber), 
+            SqlInjectDetector.ContainsSqlInjection(partNumber).Should().BeFalse(
                 $"Valid part number '{partNumber}' should not be flagged as injection");
         }
     }
@@ -139,7 +140,7 @@ public sealed class SqlInjectDetectorValidInputTests
         // Act & Assert
         foreach (var validPart in validPartsWithSpecialChars)
         {
-            Assert.IsFalse(SqlInjectDetector.ContainsSqlInjection(validPart), 
+            SqlInjectDetector.ContainsSqlInjection(validPart).Should().BeFalse(
                 $"Valid part with special characters '{validPart}' should not be flagged");
         }
     }
@@ -163,7 +164,7 @@ public sealed class SqlInjectDetectorValidInputTests
         // Act & Assert
         foreach (var input in validInputs)
         {
-            Assert.IsFalse(SqlInjectDetector.ContainsSqlInjection(input), $"Input '{input}' should be valid");
+            SqlInjectDetector.ContainsSqlInjection(input).Should().BeFalse($"Input '{input}' should be valid");
         }
     }
     
@@ -188,7 +189,7 @@ public sealed class SqlInjectDetectorValidInputTests
         // Act & Assert
         foreach (var partData in validPartData)
         {
-            Assert.IsFalse(SqlInjectDetector.ContainsSqlInjection(partData), 
+            SqlInjectDetector.ContainsSqlInjection(partData).Should().BeFalse(
                 $"Valid part data '{partData}' should not be flagged as injection");
         }
     }

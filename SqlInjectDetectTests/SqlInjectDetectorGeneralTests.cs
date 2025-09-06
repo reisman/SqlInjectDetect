@@ -1,3 +1,4 @@
+using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SqlInjectDetect;
 
@@ -12,14 +13,14 @@ public sealed class SqlInjectDetectorGeneralTests
         // Arrange & Act & Assert
         
         // These should be safe
-        Assert.IsFalse(SqlInjectDetector.ContainsSqlInjection("O'Connor")); // Valid name with apostrophe
-        Assert.IsFalse(SqlInjectDetector.ContainsSqlInjection("It's a test")); // Valid contraction
-        Assert.IsFalse(SqlInjectDetector.ContainsSqlInjection("Price: $19.99")); // Valid price
+        SqlInjectDetector.ContainsSqlInjection("O'Connor").Should().BeFalse(); // Valid name with apostrophe
+        SqlInjectDetector.ContainsSqlInjection("It's a test").Should().BeFalse(); // Valid contraction
+        SqlInjectDetector.ContainsSqlInjection("Price: $19.99").Should().BeFalse(); // Valid price
         
         // These should be detected
-        Assert.IsTrue(SqlInjectDetector.ContainsSqlInjection("test' OR '1'='1")); // Classic injection
-        Assert.IsTrue(SqlInjectDetector.ContainsSqlInjection("javascript:alert(1)")); // Script injection
-        Assert.IsTrue(SqlInjectDetector.ContainsSqlInjection("char(65)")); // Function call
+        SqlInjectDetector.ContainsSqlInjection("test' OR '1'='1").Should().BeTrue(); // Classic injection
+        SqlInjectDetector.ContainsSqlInjection("javascript:alert(1)").Should().BeTrue(); // Script injection
+        SqlInjectDetector.ContainsSqlInjection("char(65)").Should().BeTrue(); // Function call
     }
 
     [TestMethod]
@@ -50,7 +51,7 @@ public sealed class SqlInjectDetectorGeneralTests
         stopwatch.Stop();
         
         // Assert - Should complete reasonably quickly (less than 5 seconds for 60k calls)
-        Assert.IsTrue(stopwatch.ElapsedMilliseconds < 5000, 
+        stopwatch.ElapsedMilliseconds.Should().BeLessThan(5000, 
             $"Performance test took too long: {stopwatch.ElapsedMilliseconds}ms for 60,000 calls");
     }
 }

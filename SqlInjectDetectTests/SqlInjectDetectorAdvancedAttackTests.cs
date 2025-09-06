@@ -1,3 +1,4 @@
+using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SqlInjectDetect;
 
@@ -29,7 +30,7 @@ public sealed class SqlInjectDetectorAdvancedAttackTests
         // Act & Assert
         foreach (var injection in subtleInjections)
         {
-            Assert.IsTrue(SqlInjectDetector.ContainsSqlInjection(injection), 
+            SqlInjectDetector.ContainsSqlInjection(injection).Should().BeTrue(
                 $"Subtle injection '{injection}' should be detected");
         }
     }
@@ -57,7 +58,7 @@ public sealed class SqlInjectDetectorAdvancedAttackTests
         // Act & Assert
         foreach (var injection in encodedInjections)
         {
-            Assert.IsTrue(SqlInjectDetector.ContainsSqlInjection(injection), 
+            SqlInjectDetector.ContainsSqlInjection(injection).Should().BeTrue(
                 $"Encoded injection '{injection}' should be detected");
         }
     }
@@ -85,7 +86,7 @@ public sealed class SqlInjectDetectorAdvancedAttackTests
         // Act & Assert
         foreach (var injection in blindInjections)
         {
-            Assert.IsTrue(SqlInjectDetector.ContainsSqlInjection(injection), 
+            SqlInjectDetector.ContainsSqlInjection(injection).Should().BeTrue(
                 $"Blind injection '{injection}' should be detected");
         }
     }
@@ -109,7 +110,7 @@ public sealed class SqlInjectDetectorAdvancedAttackTests
         // Act & Assert
         foreach (var injection in timeBasedInjections)
         {
-            Assert.IsTrue(SqlInjectDetector.ContainsSqlInjection(injection), 
+            SqlInjectDetector.ContainsSqlInjection(injection).Should().BeTrue(
                 $"Time-based injection '{injection}' should be detected");
         }
     }
@@ -129,7 +130,7 @@ public sealed class SqlInjectDetectorAdvancedAttackTests
         // Act & Assert
         foreach (var attack in errorBasedAttacks)
         {
-            Assert.IsTrue(SqlInjectDetector.ContainsSqlInjection(attack), $"Error-based attack '{attack}' should be detected");
+            SqlInjectDetector.ContainsSqlInjection(attack).Should().BeTrue($"Error-based attack '{attack}' should be detected");
         }
     }
 
@@ -148,7 +149,7 @@ public sealed class SqlInjectDetectorAdvancedAttackTests
         // Act & Assert
         foreach (var attack in outOfBandAttacks)
         {
-            Assert.IsTrue(SqlInjectDetector.ContainsSqlInjection(attack), $"Out-of-band attack '{attack}' should be detected");
+            SqlInjectDetector.ContainsSqlInjection(attack).Should().BeTrue($"Out-of-band attack '{attack}' should be detected");
         }
     }
 }
