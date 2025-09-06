@@ -23,7 +23,7 @@ public static class SqlInjectDetector
         @"\b(sp_|xp_)\w*|" +
 
         // SQL functions and system variables often used in attacks
-        @"\b(char|ascii|substring|cast|convert|nchar|stuff|replace|reverse|space|len|datalength|system_user|db_name|user_name|host_name|load_file|utl_http.request|@@version|@@servername)\s*\(?|" +
+        @"\b(char|ascii|substring|cast|convert|nchar|stuff|replace|reverse|space|len|datalength|system_user|db_name|user_name|host_name|load_file|utl_http.request|@@version|@@servername)\s*\(|" +
 
         // Operators and chaining
         @"(\|\||&&|\+\s*\(|exists\s*\()|" +
