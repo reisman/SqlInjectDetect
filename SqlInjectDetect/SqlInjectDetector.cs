@@ -11,7 +11,7 @@ public static class SqlInjectDetector
     private static readonly Regex UnionPattern = new(@"\bunion(\s+all)?\s+select\b", 
         RegexOptions.Compiled | RegexOptions.IgnoreCase);
     
-    private static readonly Regex SqlKeywordPattern = new(@"\b(select|insert|update|delete|drop|create|alter|exec|execute)\b", 
+    private static readonly Regex SqlKeywordPattern = new(@"\b(select|insert|update|delete|drop|create|alter|exec|execute|declare|bulk|shutdown|waitfor|if|while|begin|end|try|catch|case|when|then|else|having|group\s+by|order\s+by|like|escape)\b", 
         RegexOptions.Compiled | RegexOptions.IgnoreCase);
     
     private static readonly Regex HexPattern = new(@"\b0x[0-9a-f]+\b", 
@@ -20,13 +20,14 @@ public static class SqlInjectDetector
     private static readonly Regex StoredProcPattern = new(@"\b(sp_|xp_)\w*", 
         RegexOptions.Compiled | RegexOptions.IgnoreCase);
 
-    // Dangerous keywords that should trigger detection
-    private static readonly HashSet<string> DangerousKeywords = new(StringComparer.OrdinalIgnoreCase)
-    {
-        "select", "insert", "update", "delete", "drop", "create", "alter", 
-        "exec", "execute", "union", "script", "javascript", "vbscript",
-        "char", "ascii", "substring", "cast", "convert"
-    };
+    private static readonly Regex SqlFunctionPattern = new(@"\b(char|ascii|substring|cast|convert|nchar|stuff|replace|reverse|space|len|datalength|system_user|db_name|user_name|host_name)\s*\(", 
+        RegexOptions.Compiled | RegexOptions.IgnoreCase);
+
+    private static readonly Regex UrlEncodedPattern = new(@"%[0-9a-f]{2}", 
+        RegexOptions.Compiled | RegexOptions.IgnoreCase);
+
+    private static readonly Regex SqlOperatorPattern = new(@"(\|\||&&|\+\s*\(|exists\s*\()", 
+        RegexOptions.Compiled | RegexOptions.IgnoreCase);
 
     public static bool ContainsSqlInjection(string? sql)
     {
@@ -36,20 +37,48 @@ public static class SqlInjectDetector
         // Normalize input for analysis
         var normalizedSql = sql.Trim();
         
-        // Check for common SQL injection patterns
-        if (HasSqlComments(normalizedSql) ||
-            HasUnionBasedInjection(normalizedSql) ||
-            HasQuoteEscapeAttempts(normalizedSql) ||
-            HasDangerousKeywords(normalizedSql) ||
-            HasHexEncodedContent(normalizedSql) ||
-            HasSqlStatementChaining(normalizedSql) ||
-            HasStoredProcedureCalls(normalizedSql) ||
-            HasClassicInjectionPatterns(normalizedSql))
+        // Try to decode URL encoded content for analysis
+        var decodedSql = TryUrlDecode(normalizedSql);
+        
+        // Check both original and decoded versions
+        foreach (var testSql in new[] { normalizedSql, decodedSql })
         {
-            return true;
+            if (string.IsNullOrEmpty(testSql)) continue;
+            if (testSql != normalizedSql && testSql == normalizedSql) continue; // Skip duplicates
+            
+            if (HasSqlComments(testSql) ||
+                HasUnionBasedInjection(testSql) ||
+                HasQuoteEscapeAttempts(testSql) ||
+                HasDangerousKeywords(testSql) ||
+                HasHexEncodedContent(testSql) ||
+                HasSqlStatementChaining(testSql) ||
+                HasStoredProcedureCalls(testSql) ||
+                HasClassicInjectionPatterns(testSql) ||
+                HasSqlFunctions(testSql) ||
+                HasSqlOperators(testSql) ||
+                HasAdvancedPatterns(testSql))
+            {
+                return true;
+            }
         }
 
         return false;
+    }
+
+    private static string TryUrlDecode(string input)
+    {
+        try
+        {
+            if (UrlEncodedPattern.IsMatch(input))
+            {
+                return Uri.UnescapeDataString(input);
+            }
+        }
+        catch
+        {
+            // If URL decoding fails, return original
+        }
+        return input;
     }
 
     private static bool HasSqlComments(string sql)
@@ -64,15 +93,13 @@ public static class SqlInjectDetector
 
     private static bool HasQuoteEscapeAttempts(string sql)
     {
-        // Look for quote manipulation attempts that are likely malicious
         return sql.Contains("';") || sql.Contains("\";") || 
                sql.Contains("\\'") || sql.Contains("\\\"") ||
-               (sql.Contains("''") && sql.Length > 10); // Only flag double quotes in longer strings
+               (sql.Contains("''") && sql.Length > 10);
     }
 
     private static bool HasDangerousKeywords(string sql)
     {
-        // Check if the string contains SQL keywords
         return SqlKeywordPattern.IsMatch(sql);
     }
 
@@ -83,7 +110,6 @@ public static class SqlInjectDetector
 
     private static bool HasSqlStatementChaining(string sql)
     {
-        // Check for multiple statements (semicolon followed by SQL keywords)
         var semicolonIndex = sql.IndexOf(';');
         if (semicolonIndex >= 0 && semicolonIndex < sql.Length - 1)
         {
@@ -99,9 +125,43 @@ public static class SqlInjectDetector
         return StoredProcPattern.IsMatch(sql);
     }
 
+    private static bool HasSqlFunctions(string sql)
+    {
+        return SqlFunctionPattern.IsMatch(sql);
+    }
+
+    private static bool HasSqlOperators(string sql)
+    {
+        return SqlOperatorPattern.IsMatch(sql);
+    }
+
+    private static bool HasAdvancedPatterns(string sql)
+    {
+        var lowerSql = sql.ToLowerInvariant();
+        
+        return lowerSql.Contains("information_schema") ||
+               lowerSql.Contains("sysobjects") ||
+               lowerSql.Contains("master..") ||
+               lowerSql.Contains("@@version") ||
+               lowerSql.Contains("@@servername") ||
+               lowerSql.Contains("system_user") ||
+               lowerSql.Contains("db_name") ||
+               lowerSql.Contains("user_name") ||
+               lowerSql.Contains("host_name") ||
+               lowerSql.Contains("xp_cmdshell") ||
+               lowerSql.Contains("sp_configure") ||
+               lowerSql.Contains("bulk insert") ||
+               lowerSql.Contains("shutdown") ||
+               lowerSql.Contains("waitfor delay") ||
+               lowerSql.Contains("/**/") ||
+               lowerSql.Contains("begin try") ||
+               lowerSql.Contains("end try") ||
+               lowerSql.Contains("begin catch") ||
+               lowerSql.Contains("end catch");
+    }
+
     private static bool HasClassicInjectionPatterns(string sql)
     {
-        // Classic injection patterns
         var lowerSql = sql.ToLowerInvariant();
         
         return lowerSql.Contains("' or '1'='1") ||
