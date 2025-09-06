@@ -1,5 +1,4 @@
 using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SqlInjectDetect;
 
 namespace SqlInjectDetectTests;
@@ -20,6 +19,7 @@ public sealed class SqlInjectDetectorValidInputTests
             "Some normal text",
             "O'Connor", // Valid apostrophe in name
             "test-value",
+            "Injection insert step - stop injection component",
             ""
         };
 
