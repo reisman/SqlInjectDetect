@@ -5,7 +5,7 @@ namespace SqlInjectDetect;
 public static class SqlInjectDetector
 {
     // Compiled regex patterns for performance
-    private static readonly Regex SqlCommentPattern = new(@"(/\*.*?\*/|--.*|#.*)", 
+    private static readonly Regex SqlCommentPattern = new(@"(/\*.*?\*/|^\s*--|\s--|^\s*#|\s#)", 
         RegexOptions.Compiled | RegexOptions.IgnoreCase | RegexOptions.Singleline);
     
     private static readonly Regex UnionPattern = new(@"\bunion(\s+all)?\s+select\b", 
