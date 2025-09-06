@@ -1,18 +1,11 @@
-﻿using SqlInjectDetect;
+﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
+using SqlInjectDetect;
 
 namespace SqlInjectDetectTests;
 
 [TestClass]
 public sealed class SqlInjectDetectorTests
 {
-    private SqlInjectDetector detector;
-
-    [TestInitialize]
-    public void Setup()
-    {
-        detector = new SqlInjectDetector();
-    }
-
     [TestMethod]
     public void ContainsSqlInjection_ValidInput_ReturnsFalse()
     {
@@ -32,7 +25,7 @@ public sealed class SqlInjectDetectorTests
         // Act & Assert
         foreach (var input in validInputs)
         {
-            Assert.IsFalse(detector.ContainsSqlInjection(input), $"Input '{input}' should be valid");
+            Assert.IsFalse(SqlInjectDetector.ContainsSqlInjection(input), $"Input '{input}' should be valid");
         }
     }
 
@@ -52,7 +45,7 @@ public sealed class SqlInjectDetectorTests
         // Act & Assert
         foreach (var input in maliciousInputs)
         {
-            Assert.IsTrue(detector.ContainsSqlInjection(input), $"Input '{input}' should be detected as malicious");
+            Assert.IsTrue(SqlInjectDetector.ContainsSqlInjection(input), $"Input '{input}' should be detected as malicious");
         }
     }
 
@@ -71,7 +64,7 @@ public sealed class SqlInjectDetectorTests
         // Act & Assert
         foreach (var input in unionAttacks)
         {
-            Assert.IsTrue(detector.ContainsSqlInjection(input), $"Union attack '{input}' should be detected");
+            Assert.IsTrue(SqlInjectDetector.ContainsSqlInjection(input), $"Union attack '{input}' should be detected");
         }
     }
 
@@ -91,7 +84,7 @@ public sealed class SqlInjectDetectorTests
         // Act & Assert
         foreach (var input in quoteEscapes)
         {
-            Assert.IsTrue(detector.ContainsSqlInjection(input), $"Quote escape '{input}' should be detected");
+            Assert.IsTrue(SqlInjectDetector.ContainsSqlInjection(input), $"Quote escape '{input}' should be detected");
         }
     }
 
@@ -115,7 +108,7 @@ public sealed class SqlInjectDetectorTests
         // Act & Assert
         foreach (var input in dangerousInputs)
         {
-            Assert.IsTrue(detector.ContainsSqlInjection(input), $"Dangerous keyword '{input}' should be detected");
+            Assert.IsTrue(SqlInjectDetector.ContainsSqlInjection(input), $"Dangerous keyword '{input}' should be detected");
         }
     }
 
@@ -133,7 +126,7 @@ public sealed class SqlInjectDetectorTests
         // Act & Assert
         foreach (var input in hexInputs)
         {
-            Assert.IsTrue(detector.ContainsSqlInjection(input), $"Hex encoded '{input}' should be detected");
+            Assert.IsTrue(SqlInjectDetector.ContainsSqlInjection(input), $"Hex encoded '{input}' should be detected");
         }
     }
 
@@ -152,7 +145,7 @@ public sealed class SqlInjectDetectorTests
         // Act & Assert
         foreach (var input in chainingInputs)
         {
-            Assert.IsTrue(detector.ContainsSqlInjection(input), $"Statement chaining '{input}' should be detected");
+            Assert.IsTrue(SqlInjectDetector.ContainsSqlInjection(input), $"Statement chaining '{input}' should be detected");
         }
     }
 
@@ -175,7 +168,7 @@ public sealed class SqlInjectDetectorTests
         // Act & Assert
         foreach (var input in complexAttacks)
         {
-            Assert.IsTrue(detector.ContainsSqlInjection(input), $"Complex attack '{input}' should be detected");
+            Assert.IsTrue(SqlInjectDetector.ContainsSqlInjection(input), $"Complex attack '{input}' should be detected");
         }
     }
 
@@ -183,9 +176,9 @@ public sealed class SqlInjectDetectorTests
     public void ContainsSqlInjection_NullAndEmpty_ReturnsFalse()
     {
         // Act & Assert
-        Assert.IsFalse(detector.ContainsSqlInjection(null));
-        Assert.IsFalse(detector.ContainsSqlInjection(""));
-        Assert.IsFalse(detector.ContainsSqlInjection("   "));
+        Assert.IsFalse(SqlInjectDetector.ContainsSqlInjection(null));
+        Assert.IsFalse(SqlInjectDetector.ContainsSqlInjection(""));
+        Assert.IsFalse(SqlInjectDetector.ContainsSqlInjection("   "));
     }
 
     [TestMethod]
@@ -194,14 +187,14 @@ public sealed class SqlInjectDetectorTests
         // Arrange & Act & Assert
         
         // These should be safe
-        Assert.IsFalse(detector.ContainsSqlInjection("O'Connor")); // Valid name with apostrophe
-        Assert.IsFalse(detector.ContainsSqlInjection("It's a test")); // Valid contraction
-        Assert.IsFalse(detector.ContainsSqlInjection("Price: $19.99")); // Valid price
+        Assert.IsFalse(SqlInjectDetector.ContainsSqlInjection("O'Connor")); // Valid name with apostrophe
+        Assert.IsFalse(SqlInjectDetector.ContainsSqlInjection("It's a test")); // Valid contraction
+        Assert.IsFalse(SqlInjectDetector.ContainsSqlInjection("Price: $19.99")); // Valid price
         
         // These should be detected
-        Assert.IsTrue(detector.ContainsSqlInjection("test' OR '1'='1")); // Classic injection
-        Assert.IsTrue(detector.ContainsSqlInjection("javascript:alert(1)")); // Script injection
-        Assert.IsTrue(detector.ContainsSqlInjection("char(65)")); // Function call
+        Assert.IsTrue(SqlInjectDetector.ContainsSqlInjection("test' OR '1'='1")); // Classic injection
+        Assert.IsTrue(SqlInjectDetector.ContainsSqlInjection("javascript:alert(1)")); // Script injection
+        Assert.IsTrue(SqlInjectDetector.ContainsSqlInjection("char(65)")); // Function call
     }
 
     [TestMethod]
@@ -225,7 +218,7 @@ public sealed class SqlInjectDetectorTests
         {
             foreach (var input in testInputs)
             {
-                detector.ContainsSqlInjection(input);
+                SqlInjectDetector.ContainsSqlInjection(input);
             }
         }
         

@@ -2,7 +2,7 @@
 
 namespace SqlInjectDetect;
 
-public sealed class SqlInjectDetector
+public static class SqlInjectDetector
 {
     // Compiled regex patterns for performance
     private static readonly Regex SqlCommentPattern = new(@"(/\*.*?\*/|--.*|#.*)", 
@@ -28,7 +28,7 @@ public sealed class SqlInjectDetector
         "char", "ascii", "substring", "cast", "convert"
     };
 
-    public bool ContainsSqlInjection(string? sql)
+    public static bool ContainsSqlInjection(string? sql)
     {
         if (string.IsNullOrWhiteSpace(sql))
             return false;
@@ -52,17 +52,17 @@ public sealed class SqlInjectDetector
         return false;
     }
 
-    private bool HasSqlComments(string sql)
+    private static bool HasSqlComments(string sql)
     {
         return SqlCommentPattern.IsMatch(sql);
     }
 
-    private bool HasUnionBasedInjection(string sql)
+    private static bool HasUnionBasedInjection(string sql)
     {
         return UnionPattern.IsMatch(sql);
     }
 
-    private bool HasQuoteEscapeAttempts(string sql)
+    private static bool HasQuoteEscapeAttempts(string sql)
     {
         // Look for quote manipulation attempts that are likely malicious
         return sql.Contains("';") || sql.Contains("\";") || 
@@ -70,18 +70,18 @@ public sealed class SqlInjectDetector
                (sql.Contains("''") && sql.Length > 10); // Only flag double quotes in longer strings
     }
 
-    private bool HasDangerousKeywords(string sql)
+    private static bool HasDangerousKeywords(string sql)
     {
         // Check if the string contains SQL keywords
         return SqlKeywordPattern.IsMatch(sql);
     }
 
-    private bool HasHexEncodedContent(string sql)
+    private static bool HasHexEncodedContent(string sql)
     {
         return HexPattern.IsMatch(sql);
     }
 
-    private bool HasSqlStatementChaining(string sql)
+    private static bool HasSqlStatementChaining(string sql)
     {
         // Check for multiple statements (semicolon followed by SQL keywords)
         var semicolonIndex = sql.IndexOf(';');
@@ -94,12 +94,12 @@ public sealed class SqlInjectDetector
         return false;
     }
 
-    private bool HasStoredProcedureCalls(string sql)
+    private static bool HasStoredProcedureCalls(string sql)
     {
         return StoredProcPattern.IsMatch(sql);
     }
 
-    private bool HasClassicInjectionPatterns(string sql)
+    private static bool HasClassicInjectionPatterns(string sql)
     {
         // Classic injection patterns
         var lowerSql = sql.ToLowerInvariant();
