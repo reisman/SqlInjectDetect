@@ -498,4 +498,27 @@ public sealed class SqlInjectDetectorTests
                 $"Valid part with special characters '{validPart}' should not be flagged");
         }
     }
+
+    [TestMethod]
+    public void ContainsSqlInjection_UnicodeAndInternationalCharacters_ReturnsFalse()
+    {
+        // Arrange
+        var validInputs = new[]
+        {
+            "José",
+            "François",
+            "你好",
+            "こんにちは",
+            "안녕하세요",
+            "你好世界",
+            "123 Main St, Сент-Луис, MO",
+            "item-你好"
+        };
+
+        // Act & Assert
+        foreach (var input in validInputs)
+        {
+            Assert.IsFalse(SqlInjectDetector.ContainsSqlInjection(input), $"Input '{input}' should be valid");
+        }
+    }
 }

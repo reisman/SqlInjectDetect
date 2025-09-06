@@ -5,7 +5,7 @@ namespace SqlInjectDetect;
 public static class SqlInjectDetector
 {
     // Compiled regex patterns for performance
-    private static readonly Regex SqlCommentPattern = new(@"(/\*.*?\*/|^\s*--|\s--|^\s*#|\s#)", 
+    private static readonly Regex SqlCommentPattern = new(@"(/\*.*?\*/|\s--\s|--$|\s#\s|#$)", 
         RegexOptions.Compiled | RegexOptions.IgnoreCase | RegexOptions.Singleline);
     
     private static readonly Regex UnionPattern = new(@"\bunion(\s+all)?\s+select\b", 
@@ -83,7 +83,10 @@ public static class SqlInjectDetector
 
     private static bool HasSqlComments(string sql)
     {
-        return SqlCommentPattern.IsMatch(sql);
+        // A more precise check for comments, ensuring they are not part of a larger string.
+        return (sql.Contains("/*") && sql.Contains("*/")) ||
+               Regex.IsMatch(sql, @"\s--\s|--$") ||
+               Regex.IsMatch(sql, @"\s#\s|#$");
     }
 
     private static bool HasUnionBasedInjection(string sql)
