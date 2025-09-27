@@ -54,6 +54,24 @@ public sealed class SqlInjectDetectorMsSqlServerTests
             
             // sp_addlinkedserver to create a linked server
             "'; EXEC sp_addlinkedserver 'new_server', 'SQL Server'; --",
+            
+            // Time-based blind injection
+            "';WAITFOR DELAY '0:0:10'--",
+            
+            // Error-based injection
+            "' AND 1=CONVERT(int, (SELECT @@version))--",
+            
+            // Blind injection with conditional delay
+            "IF (ASCII(SUBSTRING((SELECT top 1 name FROM sys.tables), 1, 1))) > 100 WAITFOR DELAY '0:0:5'",
+            
+            // INSERT with subquery
+            "INSERT INTO users (username, password) VALUES ('admin', (SELECT TOP 1 password FROM admin_users));",
+            
+            // UPDATE with subquery
+            "UPDATE users SET password = (SELECT TOP 1 password FROM admin_users) WHERE username = 'admin';",
+            
+            // More xp_cmdshell
+            "EXEC master.dbo.xp_cmdshell 'dir'"
         };
 
         // Act & Assert

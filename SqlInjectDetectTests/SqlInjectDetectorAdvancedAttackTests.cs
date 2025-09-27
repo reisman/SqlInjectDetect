@@ -51,7 +51,9 @@ public sealed class SqlInjectDetectorAdvancedAttackTests
             "Tire' + SUBSTRING('XSELECTX', 2, 6)", // Hidden SELECT in substring
             "Alternator' + REVERSE('TCELES')", // Reversed SELECT
             "Part' + REPLACE('xDROPx', 'x', '')", // Hidden DROP with REPLACE
-            "Filter' + STUFF('xDELETEx', 2, 6, 'DELETE')" // STUFF function to build DELETE
+            "Filter' + STUFF('xDELETEx', 2, 6, 'DELETE')", // STUFF function to build DELETE
+            "SELECT FROM_BASE64('c2VsZWN0IHVzZXIoKQ==');", // Base64 encoded
+            "EXEC('SELECT 1');" // EXEC with string
         };
 
         // Act & Assert

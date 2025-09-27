@@ -15,7 +15,7 @@ public static class SqlInjectDetector
 
         // Dangerous keywords followed by syntax, not just the keyword alone.
         // This reduces false positives for valid text containing words like "select" or "insert".
-        @"\b(select\s+.+from|insert\s+into|update\s+.+set|delete\s+from|drop\s+(table|database)|create\s+(table|database)|alter\s+table|exec\s+.+|execute\s+.+|declare\s+@|bulk\s+insert|shutdown|waitfor\s+delay)\b|" +
+        @"\b(select\s+[^;]+|insert\s+into|update\s+.+set|delete\s+from|drop\s+(table|database)|create\s+(table|database)|alter\s+table|exec\s+.+|execute\s+.+|declare\s+@|bulk\s+insert|shutdown|waitfor\s+delay)\b|" +
         
         // Standalone keywords that are still suspicious but can be part of normal language.
         // We will look for more context rather than just the keyword.
@@ -44,6 +44,7 @@ public static class SqlInjectDetector
         RegexOptions.Compiled | RegexOptions.IgnoreCase | RegexOptions.Singleline);
 
     private static readonly Regex UrlEncodedPattern = new(@"%[0-9a-f]{2}", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+    private static readonly Regex Base64Pattern = new(@"from_base64\s*\(([^)]+)\)", RegexOptions.Compiled | RegexOptions.IgnoreCase);
 
     public static bool ContainsSqlInjection(string? sql)
     {
@@ -70,9 +71,22 @@ public static class SqlInjectDetector
             var decodedSql = TryUrlDecode(normalizedSql);
             if (decodedSql != normalizedSql) // Check only if decoding produced a new string
             {
-                if (HasQuoteEscapeAttempts(decodedSql) || 
-                    HasSqlStatementChaining(decodedSql) || 
-                    CombinedSqlInjectionPattern.IsMatch(decodedSql))
+                if (ContainsSqlInjection(decodedSql)) // Recursive call
+                {
+                    return true;
+                }
+            }
+        }
+        
+        // Check for Base64 encoded payloads
+        var base64Match = Base64Pattern.Match(normalizedSql);
+        if (base64Match.Success)
+        {
+            var base64String = base64Match.Groups[1].Value.Trim('\'', '"');
+            var decodedFromBase64 = TryBase64Decode(base64String);
+            if (decodedFromBase64 != base64String) // Check only if decoding produced a new string
+            {
+                if (ContainsSqlInjection(decodedFromBase64)) // Recursive call
                 {
                     return true;
                 }
@@ -80,6 +94,20 @@ public static class SqlInjectDetector
         }
 
         return false;
+    }
+
+    private static string TryBase64Decode(string input)
+    {
+        try
+        {
+            var buffer = Convert.FromBase64String(input);
+            return System.Text.Encoding.UTF8.GetString(buffer);
+        }
+        catch
+        {
+            // If decoding fails, return the original string.
+            return input;
+        }
     }
 
     private static string TryUrlDecode(string input)
