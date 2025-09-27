@@ -64,7 +64,8 @@ public sealed class SqlInjectDetectorValidInputTests
             "Cabin Air Filter",
             "Serpentine Belt 6PK1865",
             "Shock Absorber - Rear",
-            "CV Joint Kit"
+            "CV Joint Kit",
+            "Try"
         };
 
         // Act & Assert

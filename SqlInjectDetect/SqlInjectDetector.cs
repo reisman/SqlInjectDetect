@@ -17,8 +17,9 @@ public static class SqlInjectDetector
         // This reduces false positives for valid text containing words like "select" or "insert".
         @"\b(select\s+.+from|insert\s+into|update\s+.+set|delete\s+from|drop\s+(table|database)|create\s+(table|database)|alter\s+table|exec\s+.+|execute\s+.+|declare\s+@|bulk\s+insert|shutdown|waitfor\s+delay)\b|" +
         
-        // Standalone keywords that are still suspicious
-        @"\b(if|while|begin|end|try|catch|case|when|then|else|having|group\s+by|order\s+by|like|escape)\b|" +
+        // Standalone keywords that are still suspicious but can be part of normal language.
+        // We will look for more context rather than just the keyword.
+        @"\b(begin\s+transaction|begin\s+try|end\s+try|end\s+transaction|if\s*\(|while\s*\(|case\s+when|group\s+by|order\s+by)\b|" +
 
         // System tables/views that are highly suspicious
         @"\b(information_schema|sysobjects|xp_cmdshell|xp_dirtree|sp_configure|openrowset|openquery|dbcc)\b|" +
